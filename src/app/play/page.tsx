@@ -1093,8 +1093,12 @@ function PlayPageClient() {
         setDoubanYear(year);
       }
 
-      // 设置card_subtitle（使用mediaType和年份）
-      if (tmdbData.mediaType && tmdbData.releaseDate) {
+      // 设置card_subtitle（优先使用genres标签，否则使用年份和类型）
+      if (tmdbData.genres && Array.isArray(tmdbData.genres) && tmdbData.genres.length > 0) {
+        const genreNames = tmdbData.genres.map((g: any) => g.name).join(' / ');
+        setDoubanCardSubtitle(genreNames);
+      } else if (tmdbData.mediaType && tmdbData.releaseDate) {
+        // 兜底：如果没有genres，使用年份和类型
         const year = tmdbData.releaseDate.split('-')[0];
         const typeText = tmdbData.mediaType === 'movie' ? '电影' : '电视剧';
         setDoubanCardSubtitle(`${year} / ${typeText}`);
@@ -3347,6 +3351,18 @@ function PlayPageClient() {
 
       setDanmakuCount(danmakuData.length);
       console.log(`弹幕加载成功，共 ${danmakuData.length} 条`);
+
+      // 更新当前选择状态，包含弹幕数量
+      if (metadata) {
+        setCurrentDanmakuSelection({
+          animeId: metadata.animeId || 0,
+          episodeId: episodeId,
+          animeTitle: metadata.animeTitle || '',
+          episodeTitle: metadata.episodeTitle || '',
+          searchKeyword: metadata.searchKeyword,
+          danmakuCount: danmakuData.length,
+        });
+      }
 
       // 延迟一下让用户看到弹幕数量
       await new Promise((resolve) => setTimeout(resolve, 1500));
